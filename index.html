@@ -1,40 +1,136 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>To-Do</title>
-  <style>
-    body { font-family: sans-serif; margin: 20px; }
-    input { width: 70%; padding: 10px; }
-    button { padding: 10px; }
-    li { margin: 5px 0; }
-  </style>
+    <link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>To-Do</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        input { width: 70%; padding: 10px; }
+        button { padding: 5px 10px; margin-left: 5px; border: none; cursor: pointer; }
+        li { margin: 5px 0; display: flex; align-items: center; }
+        .task-text { flex-grow: 1; }
+        .delete-btn { background-color: #ff4d4d; color: white; }
+        .edit-btn { background-color: #ffd11a; color: black; }
+        .complete-btn { background-color: #4dff88; color: black; }
+        #completed li { text-decoration: line-through; color: gray; }
+        #notify-btn { margin-top: 20px; background-color: #4da6ff; color: white; }
+    </style>
 </head>
 <body>
-  <h1>To-Do List</h1>
-  <input id="task" placeholder="New task...">
-  <button onclick="add()">Add</button>
-  <ul id="list"></ul>
+    <h1>To-Do List</h1>
+    <input id="task" placeholder="New task...">
+    <button onclick="add()">Add</button>
 
-  <script>
-    const save = () =>
-      localStorage.setItem("tasks", document.getElementById("list").innerHTML);
+    <h2>Tasks</h2>
+    <ul id="list"></ul>
 
-    const load = () =>
-      (document.getElementById("list").innerHTML = localStorage.getItem("tasks") || "");
+    <h2>Completed</h2>
+    <ul id="completed"></ul>
 
-    load();
+    <button id="notify-btn" onclick="notify()">Test Notification</button>
 
-    function add() {
-      let task = document.getElementById("task").value;
-      if (task.trim() === "") return;
-      let li = document.createElement("li");
-      li.textContent = task;
-      li.onclick = () => { li.remove(); save() }
-      document.getElementById("list").appendChild(li);
-      document.getElementById("task").value = "";
-      save();
-    }
-  </script>
+    <script>
+        const save = () => {
+            const tasks = document.getElementById("list").innerHTML;
+            const completed = document.getElementById("completed").innerHTML;
+            localStorage.setItem("tasks", tasks);
+            localStorage.setItem("completed", completed);
+        };
+
+        const load = () => {
+            document.getElementById("list").innerHTML = localStorage.getItem("tasks") || "";
+            document.getElementById("completed").innerHTML = localStorage.getItem("completed") || "";
+            // Re-add event listeners
+            Array.from(document.querySelectorAll("#list li")).forEach(addTaskButtons);
+            Array.from(document.querySelectorAll("#completed li")).forEach(addTaskButtonsCompleted);
+        };
+
+        function addTaskButtons(li) {
+            const text = li.textContent;
+
+            li.textContent = "";
+            const span = document.createElement("span");
+            span.className = "task-text";
+            span.textContent = text;
+            li.appendChild(span);
+
+            const editBtn = document.createElement("button");
+            editBtn.textContent = "Edit";
+            editBtn.className = "edit-btn";
+            editBtn.onclick = () => {
+                const newText = prompt("Edit task:", span.textContent);
+                if (newText !== null && newText.trim() !== "") {
+                    span.textContent = newText;
+                    save();
+                }
+            };
+            li.appendChild(editBtn);
+
+            const completeBtn = document.createElement("button");
+            completeBtn.textContent = "Complete";
+            completeBtn.className = "complete-btn";
+            completeBtn.onclick = () => {
+                document.getElementById("completed").appendChild(li);
+                save();
+            };
+            li.appendChild(completeBtn);
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.textContent = "Delete";
+            deleteBtn.className = "delete-btn";
+            deleteBtn.onclick = () => {
+                li.remove();
+                save();
+            };
+            li.appendChild(deleteBtn);
+        }
+
+        function addTaskButtonsCompleted(li) {
+            const text = li.textContent;
+
+            li.textContent = "";
+            const span = document.createElement("span");
+            span.className = "task-text";
+            span.textContent = text;
+            li.appendChild(span);
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.textContent = "Delete";
+            deleteBtn.className = "delete-btn";
+            deleteBtn.onclick = () => {
+                li.remove();
+                save();
+            };
+            li.appendChild(deleteBtn);
+        }
+
+        function add() {
+            let task = document.getElementById("task").value;
+            if (task.trim() === "") return;
+            let li = document.createElement("li");
+            li.textContent = task;
+            addTaskButtons(li);
+            document.getElementById("list").appendChild(li);
+            document.getElementById("task").value = "";
+            save();
+        }
+
+        function notify() {
+            if ("Notification" in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        new Notification("Hi from the app!");
+                    } else {
+                        alert("Notification permission denied.");
+                    }
+                });
+            } else {
+                alert("Notifications not supported in this browser.");
+            }
+        }
+
+        load();
+    </script>
 </body>
 </html>
