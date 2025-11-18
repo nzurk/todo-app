@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>To-Do</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    input { width: 70%; padding: 10px; }
+    button { padding: 10px; }
+    li { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h1>To-Do List</h1>
+  <input id="task" placeholder="New task...">
+  <button onclick="add()">Add</button>
+  <ul id="list"></ul>
+
+  <script>
+    const save = () =>
+      localStorage.setItem("tasks", document.getElementById("list").innerHTML);
+
+    const load = () =>
+      (document.getElementById("list").innerHTML = localStorage.getItem("tasks") || "");
+
+    load();
+
+    function add() {
+      let task = document.getElementById("task").value;
+      if (task.trim() === "") return;
+      let li = document.createElement("li");
+      li.textContent = task;
+      li.onclick = () => { li.remove(); save() }
+      document.getElementById("list").appendChild(li);
+      document.getElementById("task").value = "";
+      save();
+    }
+  </script>
+</body>
+</html>
